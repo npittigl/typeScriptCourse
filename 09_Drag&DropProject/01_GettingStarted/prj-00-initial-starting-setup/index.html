@@ -1,12 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Understanding TypeScript</title>
-  <script src="dist/app.js" defer></script>
-</head>
-<body>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>ProjectManager</title>
+    <link rel="stylesheet" href="app.css" />
+    <script src="dist/app.js" defer></script>
+  </head>
+  <body>
+    <template id="project-input">
+      <form>
+        <div class="form-control">
+          <label for="title">Title</label>
+          <input type="text" id="title" />
+        </div>
+        <div class="form-control">
+          <label for="description">Description</label>
+          <textarea id="description" rows="3"></textarea>
+        </div>
+        <div class="form-control">
+          <label for="people">People</label>
+          <input type="number" id="people" step="1" min="0" max="10" />
+        </div>
+        <button type="submit">ADD PROJECT</button>
+      </form>
+    </template>
+    <template id="single-project">
+      <li></li>
+    </template>
+    <template id="project-list">
+      <section class="projects">
+        <header>
+          <h2></h2>
+        </header>
+        <ul></ul>
+      </section>
+    </template>
+    <div id="app"></div>
+  </body>
 </html>
+
+<!-- 
+  Template Tags - are default html tags supported by modern browsers which allow us to specify some html code which is not visible/rendered immediately but can be reached via JavaScript
+
+  Project has a form with three inputs:
+
+  1. title of project
+  2. description of project
+  3. people - number of people on project
+
+  Second template holds list item to render a single project
+
+  Third template holds list of projects - header, <ul>
+    <ul> will hold multiple single projects based on above template which renders data rendered via form
+
+  Everything will be appended to the <div id="app">
+
+  TS:
+  1. render form
+  2. fetches user's input
+  3. validates user's input (i.e. title, description & people has valid values)
+  4. listens to button click for form submission
+  5. creates new project - i.e a new JS object, likely stored in an array, which will then be rendered to this list
+  6. Entire list added to DOM
+  
+-->
