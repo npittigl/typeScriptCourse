@@ -1,3 +1,33 @@
+// Validation interface (defines object that will be validated)
+interface Validatable {
+    value: string | number;
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+} // ? before name or include 'undefined' as type if you want property value to be optional
+
+// function to heck if input is valid
+function validate(validatableInput: Validatable) {
+    let isValid= true;
+    if(validatableInput.required) {
+        isValid = isValid && validatableInput.value.toString().trim().length !== 0;
+    }
+    if(validatableInput.minLength != null && typeof validatableInput.value === 'string') {
+        isValid = isValid && validatableInput.value.length >= validatableInput.minLength;
+    }
+    if(validatableInput.maxLength != null && typeof validatableInput.value === 'string') {
+        isValid = isValid && validatableInput.value.length <= validatableInput.maxLength;
+    }
+    if(validatableInput.min != null && typeof validatableInput.value === 'number') {
+        isValid = isValid && validatableInput.value >= validatableInput.min;
+    }
+    if(validatableInput.max != null && typeof validatableInput.value === 'number') {
+        isValid = isValid && validatableInput.value <= validatableInput.max;
+    }
+    return isValid;
+}
 
 // Autobind decorator
 function autobind(
@@ -56,11 +86,29 @@ class ProjectInput {
         const enteredDescription = this.descriptionInputElement.value;
         const enteredPeople = this.peopleInputElement.value;
 
-        // if field empty, return alert or return tuple of user inputs
+        // construct validatable object; type Validatable (the created interface above); add property values
+        const titleValidatable: Validatable = {
+            value: enteredTitle,
+            required: true
+        };
+        const descriptionValidatable: Validatable = {
+            value: enteredDescription,
+            required: true,
+            minLength: 5
+        };
+        const peopleValidatable: Validatable = {
+            value: +enteredPeople,
+            required: true,
+            min: 1,
+            max: 5
+        };
+
+        // run each validatable object based on user's input through the validate function
+        // if one object is not valid, return alert or return tuple of user inputs
         if(
-            enteredTitle.trim().length === 0 ||
-            enteredDescription.trim().length === 0 ||
-            enteredPeople.trim().length === 0
+            !validate(titleValidatable) ||
+            !validate(descriptionValidatable) ||
+            !validate(peopleValidatable)
         ) {
             alert('Invalid input, please try again!');
             return;
