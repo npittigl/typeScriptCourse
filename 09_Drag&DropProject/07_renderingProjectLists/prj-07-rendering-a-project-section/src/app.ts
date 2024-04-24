@@ -56,36 +56,55 @@ function autobind(_: any, _2: string, descriptor: PropertyDescriptor) {
 }
 
 // ProjectList Class
+// want to pass gathered input to ProjectList and add a new item to it
+// want to reach out to my template (in DOM) and render it in a certain place of the application
+// this rendered two sections, each with <header>, <h2> & <ul>: 
+    // one section is for active, the other for finished projects
 class ProjectList {
+  // define element types we want access to
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
 
+  // add the fields we need in constructor
+  // want to have 2 lists in final app: 1 list for active projects, another for inactive projects so need to get additional information to the constructor: type of the project
+  // use stats shortcut, where you can add an accessor in front of the parameter, private or public, to automatically create a property of the same name and store the value that's passed in on this argument in that equally named property
+  // this class will have a property named 'type' => what is type of parameter 'type'? => should be a literal type/union type; ie. it's either active or finished
   constructor(private type: 'active' | 'finished') {
-    this.templateElement = document.getElementById(
-      'project-list'
-    )! as HTMLTemplateElement;
+    this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
     this.hostElement = document.getElementById('app')! as HTMLDivElement;
 
     const importedNode = document.importNode(
       this.templateElement.content,
       true
     );
+
     this.element = importedNode.firstElementChild as HTMLElement;
+
+    // id name of added section should not be hard coded b/c we will have more than one project list added: will either have id 'active-projects' or 'finished-projects'
+    // this.projectType lets TS know we're using this property & it's not unused
     this.element.id = `${this.type}-projects`;
+
+     // call attach method inside constructor to render section to DOM
     this.attach();
+    // call renderContent (ie h2, ul)
     this.renderContent();
   }
 
+  // method to render content (h2, ul)
   private renderContent() {
+    // add id to project list
     const listId = `${this.type}-projects-list`;
+    // access <ul> & add listId
     this.element.querySelector('ul')!.id = listId;
+    // access <h2> & insert content
     this.element.querySelector('h2')!.textContent =
       this.type.toUpperCase() + ' PROJECTS';
-    
   }
 
+  // method to attach section to page
   private attach() {
+    // 'beforeend': before the closing tag of the host element
     this.hostElement.insertAdjacentElement('beforeend', this.element);
   }
 }
@@ -185,6 +204,7 @@ class ProjectInput {
   }
 }
 
+// instantiate classes
 const prjInput = new ProjectInput();
 const activePrjList = new ProjectList('active');
 const finishedPrjList = new ProjectList('finished');
