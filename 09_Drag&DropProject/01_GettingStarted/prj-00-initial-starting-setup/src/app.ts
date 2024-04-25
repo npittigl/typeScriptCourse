@@ -1,3 +1,55 @@
+// Project State Management class
+    
+class ProjectState {
+    // property to hold array of listeners (fns)
+    private listeners: any[] = [];
+    // property to hold an array of projects
+    private projects: any[] = [];
+    // another private property called instance that is of type ProjectState
+    private static instance: ProjectState;
+
+    // use a private constructor to guarantee that this is a singleton class
+    private constructor() {}
+
+    // static getInstance method => to check then return this.instance 
+    static getInstance() {
+        if(this.instance) {
+            return this.instance
+        }
+        // i.e, this.instance will be equal to a new project state
+        this.instance = new ProjectState();
+        return this.instance;
+    }
+
+    // function to add listeners fns to listeners array
+    addListener(listenerFn: Function) {
+        this.listeners.push(listenerFn);
+    }
+
+    // define how project should look like
+    addProject(title: string, description: string, numOfpeople: number) {
+        // create a new project with object literal notation for now
+        const newProject = {
+            id: Math.random().toString(),
+            title: title,
+            description: description,
+            people: numOfpeople
+        };
+
+        // push newProject into projects array
+        this.projects.push(newProject);
+
+        // whenever state changes (ex add new project), we loop through all listeners and execute as function
+        for (const listenerFn of this.listeners) {
+            // .slice() to make copy of projects
+            listenerFn(this.projects.slice());
+        }
+    }
+}
+
+// create an instance of ProjectState => a global constant, which we could use from the entire file
+const projectState = ProjectState.getInstance();
+
 // Validation interface (defines object that will be validated)
 interface Validatable {
     value: string | number;
@@ -52,24 +104,53 @@ class ProjectList {
     hostElement: HTMLDivElement;
     // element is a section; use HTMLElement
     element: HTMLElement;
+    // add new field; type any array & will equal any projects we are getting
+    assignedProjects: any[];
 
     // constructor method to create 2 lists
     constructor(private projectType: 'active' | 'finished') {
         // to access elements
         this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
         this.hostElement = document.getElementById('app')! as HTMLDivElement;
+        // need to reference 'assignedProjects' inside constructor
+        this.assignedProjects = [];
+
         const importedNode = document.importNode(this.templateElement.content, true);
         this.element = importedNode.firstElementChild as HTMLElement;
 
         // id name for section 
         this.element.id = `${this.projectType}-projects`;
 
+        // before we attach and render content, reach out to global constant 'projectState' and call addListener
+        projectState.addListener((projects: any[]) => {
+            // overriding assignedProjects with new projects, now can access list of projects & render them
+            this.assignedProjects = projects;
+            // call renderProjects from inside here
+            this.renderProjects();
+        });
+
         // call methods to attach section to DOM and render content (ie, h2, ul)
         this.attach();
         this.renderContent();
     }
 
-    // method to render content (h2, ul)
+    // method to render projects
+    private renderProjects() {
+        // access list from renderContent
+        const listEl = document.getElementById(`${this.projectType}-projects-list`)! as HTMLUListElement;
+        // loop through all the project items of assignedProjects
+        for(const prjItem of this.assignedProjects) {
+            // every li (project item) is a project, which is an object
+            // create li element
+            const listItem = document.createElement('li');
+            // add title to li
+            listItem.textContent = prjItem.title;
+            // append li to ul
+            listEl.appendChild(listItem);
+        }
+    }
+
+    // method to render content (h2, ul) and is called before renderProjects
     private renderContent() {
         // add id to project list
         const listId = `${this.projectType}-projects-list`;
@@ -171,7 +252,9 @@ class ProjectInput {
         
         if(Array.isArray(userInput)) {
             const [title, desc, people] = userInput;
-            console.log(title, desc, people);
+            // now we can call projectState.addProject here, passing title, desc, people as arguments & now the project can be created based on user's input
+            // Now we need to push that information that we have a new project to our ProjectList Class, because that's the class responsible for outputting something to the screen
+            projectState.addProject(title, desc, people);
             // call method to clear fields
             this.clearInputs();
         }
