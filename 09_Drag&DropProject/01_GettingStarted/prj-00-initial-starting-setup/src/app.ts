@@ -1,10 +1,32 @@
-// Project State Management class
-    
+
+// custom type for project status
+enum ProjectStatus { 
+    Active, 
+    Finished 
+}
+
+// class project to define project obj structure
+class Project {
+    constructor(
+        public id: string, 
+        public title: string, 
+        public description: string, 
+        public people: number,
+        public status: ProjectStatus
+    ) {}
+}
+
+// custom type for listener
+type Listener = (items: Project[]) => void;
+
+// Project State Management class   
 class ProjectState {
-    // property to hold array of listeners (fns)
-    private listeners: any[] = [];
-    // property to hold an array of projects
-    private projects: any[] = [];
+    // property to hold array of listeners (fns); of type Listener
+    private listeners: Listener[] = [];
+    
+    // property to hold an array of projects; type Project(the custom type we created)
+    private projects: Project[] = [];
+
     // another private property called instance that is of type ProjectState
     private static instance: ProjectState;
 
@@ -22,19 +44,30 @@ class ProjectState {
     }
 
     // function to add listeners fns to listeners array
-    addListener(listenerFn: Function) {
+    // listenerFn becomes type 'Listener' instead of type 'Function'
+    addListener(listenerFn: Listener) {
         this.listeners.push(listenerFn);
     }
 
     // define how project should look like
     addProject(title: string, description: string, numOfpeople: number) {
+        // can instatiate Project class to create a new project with parameters as properties (id, title, desc, people, status)
+        const newProject = new Project (
+            Math.random().toString(),
+            title,
+            description,
+            numOfpeople,
+            // every new project will be active by default (use enum)
+            ProjectStatus.Active
+        );
+    
         // create a new project with object literal notation for now
-        const newProject = {
-            id: Math.random().toString(),
-            title: title,
-            description: description,
-            people: numOfpeople
-        };
+        // const newProject = {
+        //     id: Math.random().toString(),
+        //     title: title,
+        //     description: description,
+        //     people: numOfpeople
+        // };
 
         // push newProject into projects array
         this.projects.push(newProject);
@@ -104,8 +137,8 @@ class ProjectList {
     hostElement: HTMLDivElement;
     // element is a section; use HTMLElement
     element: HTMLElement;
-    // add new field; type any array & will equal any projects we are getting
-    assignedProjects: any[];
+    // add new field; type any array & will equal any projects we are getting => update type from any[] to Project[]
+    assignedProjects: Project[];
 
     // constructor method to create 2 lists
     constructor(private projectType: 'active' | 'finished') {
@@ -122,7 +155,8 @@ class ProjectList {
         this.element.id = `${this.projectType}-projects`;
 
         // before we attach and render content, reach out to global constant 'projectState' and call addListener
-        projectState.addListener((projects: any[]) => {
+        // projects type = Project[] (our custom type class)
+        projectState.addListener((projects: Project[]) => {
             // overriding assignedProjects with new projects, now can access list of projects & render them
             this.assignedProjects = projects;
             // call renderProjects from inside here

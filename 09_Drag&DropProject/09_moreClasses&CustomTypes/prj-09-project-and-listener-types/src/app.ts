@@ -1,25 +1,43 @@
+// Next step: work on the property types in ProjectState (ie listeners, projects) => don't want to work with 'any' as a type
+    // => better to have a dedicated project class or project type
+
+
 // Project Type
 enum ProjectStatus {
   Active,
   Finished
 }
 
+// create a class for that project so we can instantiate it => that way we have a way of building project objects, which will always have the same structure (before we used literal notation)
 class Project {
   constructor(
     public id: string,
     public title: string,
     public description: string,
     public people: number,
+    // add new property: status (ie active or finished) => can use 'enum' as type b/c we have exactly 2 options (active or finished)
     public status: ProjectStatus
   ) {}
 }
 
-// Project State Management
+// custom type for listener
 type Listener = (items: Project[]) => void;
 
+// listener is just a function that receives items & in this case an array of projects and then does something with it
+// don't use curly braces, instead as you learned the return type will be VOID => b/c we don't care about any value that Listener function might return
+
+// Project State Management
 class ProjectState {
+  // property to hold array of listeners (fns)
+  // private listeners: any[] = [];
+  // listener is now type Listener
   private listeners: Listener[] = [];
+    
+  // property to hold an array of projects
+  // private projects: any[] = [];
+  // projects is now type Project (the custom type we created)
   private projects: Project[] = [];
+
   private static instance: ProjectState;
 
   private constructor() {}
@@ -32,19 +50,32 @@ class ProjectState {
     return this.instance;
   }
 
+  // function to add listeners fns to listeners array => // listenerFn becomes type 'Listener' instead of type 'Function'
   addListener(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
 
   addProject(title: string, description: string, numOfPeople: number) {
+    // can instatiate class Project to create a new project with parameters as properties (id, title, desc, people, status) -> instead of using literal notation
     const newProject = new Project(
       Math.random().toString(),
       title,
       description,
       numOfPeople,
+      // every new project will be active by default (use enum)
       ProjectStatus.Active
     );
+
+    // create a new project with object literal notation for now
+    // const newProject = {
+    //     id: Math.random().toString(),
+    //     title: title,
+    //     description: description,
+    //     people: numOfpeople
+    // };
+
     this.projects.push(newProject);
+
     for (const listenerFn of this.listeners) {
       listenerFn(this.projects.slice());
     }
@@ -115,6 +146,7 @@ class ProjectList {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
   element: HTMLElement;
+  // add new field; type any array & will equal any projects we are getting => update type from any[] to Project[]
   assignedProjects: Project[];
 
   constructor(private type: 'active' | 'finished') {
@@ -131,6 +163,7 @@ class ProjectList {
     this.element = importedNode.firstElementChild as HTMLElement;
     this.element.id = `${this.type}-projects`;
 
+    // projects type = Project[] (our custom type class)
     projectState.addListener((projects: Project[]) => {
       this.assignedProjects = projects;
       this.renderProjects();
