@@ -1,4 +1,3 @@
-
 // custom type for project status
 enum ProjectStatus { 
     Active, 
@@ -43,7 +42,7 @@ class ProjectState {
         return this.instance;
     }
 
-    // function to add listeners fns to listeners array
+    // function to add listener fns to listeners array
     // listenerFn becomes type 'Listener' instead of type 'Function'
     addListener(listenerFn: Listener) {
         this.listeners.push(listenerFn);
@@ -93,7 +92,7 @@ interface Validatable {
     max?: number;
 } // ? before name or include 'undefined' as type if you want property value to be optional
 
-// function to heck if input is valid
+// function to check if input is valid
 function validate(validatableInput: Validatable) {
     let isValid= true;
     if(validatableInput.required) {
@@ -157,8 +156,17 @@ class ProjectList {
         // before we attach and render content, reach out to global constant 'projectState' and call addListener
         // projects type = Project[] (our custom type class)
         projectState.addListener((projects: Project[]) => {
-            // overriding assignedProjects with new projects, now can access list of projects & render them
-            this.assignedProjects = projects;
+            // filter projects based on status before we store the projects and render them
+            const relevantProjects = projects.filter(prj => { 
+                // store projects with status 'active' in relevantProjects
+                if(this.projectType === 'active') {
+                    return prj.status === ProjectStatus.Active;
+                }
+                return prj.status === ProjectStatus.Finished;
+            });
+
+            // overriding assignedProjects with new ACTIVE projects filtered from above addListener function; now can access list of projects & render them to ACTIVE list in DOM
+            this.assignedProjects = relevantProjects;
             // call renderProjects from inside here
             this.renderProjects();
         });
@@ -172,6 +180,10 @@ class ProjectList {
     private renderProjects() {
         // access list from renderContent
         const listEl = document.getElementById(`${this.projectType}-projects-list`)! as HTMLUListElement;
+
+        // clear list content to avoid  unnecessary rerendering
+        listEl.innerHTML ='';
+
         // loop through all the project items of assignedProjects
         for(const prjItem of this.assignedProjects) {
             // every li (project item) is a project, which is an object
