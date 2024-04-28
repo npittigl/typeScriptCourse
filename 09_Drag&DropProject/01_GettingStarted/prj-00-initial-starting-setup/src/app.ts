@@ -130,6 +130,54 @@ function autobind(
     return adjDescriptor;
 }
 
+// Base class to house all element types
+    // => like in react; you can think of these classes as user interface components, which you render to the screen. And every componenet in the end is a renderable object which has some functionalities that allow us to render it => then the concrete instances, or the inherited classes, add extra functionality which this specific component needs
+// we do have problem re: types -> ex. templateElement will always be a HTMLTemplateElement but hostElement doesn't always have to be a div, for ex., when we add a project list item class, we'll render that in a ProjectList, and not directly in our root div
+// And in ProjectInput 'element' has more specific type as HTMLFormElement vs. HTMLElement
+// so we would lose this extra information if we restrict ourselves to always having just an HTMLElement there, w/o storing more specific information
+// How do we work around this? By not just using INHERITANCE but by creating a GENERIC CLASS here, where when we inherit from it, we can set the concrete types
+// add angle brackets after class name, inside add 2 identifiers of our choice, like T & U, and add some CONSTRAINTS
+    
+class Component<T extends HTMLElement, U extends HTMLElement> {
+    // we can say that T and U will be some kind of HTMLElement
+        // hostElement is type T
+        // element is type U
+        // And now, whenever we inherit from this class, we can specify the concrete types so that we can with different types in different places where we inherit
+    templateElement: HTMLTemplateElement;
+    hostElement: T;
+    element: U;
+
+    // constructor
+    // need to know ID of our template so we know how to select it, need to know hostElement ID so we know where to render this component, and need to get a newElementId, so that we get an ID that has to be assigned to the newly rendered element => optional, which we indicate by putting '?' after parameter or you can add 'undefined' as a type (newElementId: string | undefined)
+    constructor(
+        templateId: string, 
+        hostElementId: string, 
+        newElementId?: string
+    ) {
+        this.templateElement = document.getElementById(templateId)! as HTMLTemplateElement;
+        this.hostElement = document.getElementById(hostElementId)! as T;
+
+        const importedNode = document.importNode(
+            this.templateElement.content, 
+            true
+        );
+        this.element = importedNode.firstElementChild as U;
+
+        // b/c optional, use if statement to check if needed, if so then assign new element id
+        if(newElementId) {
+            this.element.id = newElementId;
+        }
+
+        this.attach();
+    }
+
+    private attach() {
+        this.hostElement.insertAdjacentElement('beforeend', this.element);
+    }
+
+    // ***Left at 5:45 -> where to render element on DOM
+}
+
 // ProjectList class
 class ProjectList {
     templateElement: HTMLTemplateElement;
