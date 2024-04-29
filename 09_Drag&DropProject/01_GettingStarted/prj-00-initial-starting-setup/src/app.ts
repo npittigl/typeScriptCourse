@@ -137,8 +137,10 @@ function autobind(
 // so we would lose this extra information if we restrict ourselves to always having just an HTMLElement there, w/o storing more specific information
 // How do we work around this? By not just using INHERITANCE but by creating a GENERIC CLASS here, where when we inherit from it, we can set the concrete types
 // add angle brackets after class name, inside add 2 identifiers of our choice, like T & U, and add some CONSTRAINTS
+
+// mark this class as ABSTRACT b/c people should never directly instantiate it, should always be used for INHERITANCE => add 'abstract' keyword in front of class to make sure we cannot instantiate it
     
-class Component<T extends HTMLElement, U extends HTMLElement> {
+abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     // we can say that T and U will be some kind of HTMLElement
         // hostElement is type T
         // element is type U
@@ -152,6 +154,7 @@ class Component<T extends HTMLElement, U extends HTMLElement> {
     constructor(
         templateId: string, 
         hostElementId: string, 
+        insertAtStart: boolean,
         newElementId?: string
     ) {
         this.templateElement = document.getElementById(templateId)! as HTMLTemplateElement;
@@ -168,59 +171,46 @@ class Component<T extends HTMLElement, U extends HTMLElement> {
             this.element.id = newElementId;
         }
 
-        this.attach();
+        this.attach(insertAtStart);
+
+        // Q. WHY not calling configure() & renderContent() in the abstract class constructor??
     }
 
-    private attach() {
-        this.hostElement.insertAdjacentElement('beforeend', this.element);
+    private attach(insertAtBeginning: boolean) {
+        this.hostElement.insertAdjacentElement(insertAtBeginning ? 'afterbegin' : 'beforeend', this.element);
     }
 
-    // ***Left at 5:45 -> where to render element on DOM
+    // add 2 more abstract methods -> force any class inheriting from this component, to add these two methods and to have them available
+    // that way if someone else looks at our code they will get a good understanding of what the idea behind the Component clas is: it does all the general rendering or attachment of the component, but that the concrete content & configuration needs to happen in the place where we inherit (note: can't have private abstract methods; one or the other)
+    abstract configure(): void;
+    // abstract configure?(): void; -> make it optional if don't want to be forced to add it to ProjectList class
+    abstract renderContent(): void;
 }
 
 // ProjectList class
-class ProjectList {
-    templateElement: HTMLTemplateElement;
-    hostElement: HTMLDivElement;
-    // element is a section; use HTMLElement
-    element: HTMLElement;
-    // add new field; type any array & will equal any projects we are getting => update type from any[] to Project[]
+// extend Component on ProjectList & remove the 3 properties (templateElement, hostElement & element)
+class ProjectList extends Component <HTMLDivElement, HTMLElement> {
+    // keep assignedProjects b/c specific to the ProjectList
     assignedProjects: Project[];
 
     // constructor method to create 2 lists
     constructor(private projectType: 'active' | 'finished') {
-        // to access elements
-        this.templateElement = document.getElementById('project-list')! as HTMLTemplateElement;
-        this.hostElement = document.getElementById('app')! as HTMLDivElement;
+        // need to call super() at the beginning to call the constructor of the base class; need to pass some information to the super() constructor: the ID of our templateElement, hostElementId, whether we want to insert this at the start of the hostElement, and, potentially, the ID that should be assigned to the new element
+        // third parameter is insertAtStart boolean (t or f) -> tells it where it needs to be inserted
+            // in this case it is FALSE b/c we don't want it inserted at the start, but at the end
+        // fourth parameter is Id for new element -> don't need 'this' in '${this.projectType}' -> just ${projectType} b/c we can't use 'this' before super finished running
+            // not a problem because we received type as an argument (type: active | finished)
+        super('project-list', 'app', false, `${projectType}-projects`);
+    
         // need to reference 'assignedProjects' inside constructor
         this.assignedProjects = [];
 
-        const importedNode = document.importNode(this.templateElement.content, true);
-        this.element = importedNode.firstElementChild as HTMLElement;
-
-        // id name for section 
-        this.element.id = `${this.projectType}-projects`;
-
-        // before we attach and render content, reach out to global constant 'projectState' and call addListener
-        // projects type = Project[] (our custom type class)
-        projectState.addListener((projects: Project[]) => {
-            // filter projects based on status before we store the projects and render them
-            const relevantProjects = projects.filter(prj => { 
-                // store projects with status 'active' in relevantProjects
-                if(this.projectType === 'active') {
-                    return prj.status === ProjectStatus.Active;
-                }
-                return prj.status === ProjectStatus.Finished;
-            });
-
-            // overriding assignedProjects with new ACTIVE projects filtered from above addListener function; now can access list of projects & render them to ACTIVE list in DOM
-            this.assignedProjects = relevantProjects;
-            // call renderProjects from inside here
-            this.renderProjects();
-        });
-
         // call methods to attach section to DOM and render content (ie, h2, ul)
-        this.attach();
+        // this.attach();
+        // don't need to call attach() b/c that will happen in the base Component class
+
+        // make sure to call configure()
+        this.configure();
         this.renderContent();
     }
 
@@ -244,8 +234,30 @@ class ProjectList {
         }
     }
 
+    // error b/c we don't have that configure method which was promised in base class
+    configure() {
+        // before we attach and render content, reach out to global constant 'projectState' and call addListener
+        // projects type = Project[] (our custom type class)
+        projectState.addListener((projects: Project[]) => {
+            // filter projects based on status before we store the projects and render them
+            const relevantProjects = projects.filter(prj => { 
+                // store projects with status 'active' in relevantProjects
+                if(this.projectType === 'active') {
+                    return prj.status === ProjectStatus.Active;
+                }
+                return prj.status === ProjectStatus.Finished;
+            });
+
+            // overriding assignedProjects with new ACTIVE projects filtered from above addListener function; now can access list of projects & render them to ACTIVE list in DOM
+            this.assignedProjects = relevantProjects;
+            // call renderProjects from inside here
+            this.renderProjects();
+        });
+    };
+
     // method to render content (h2, ul) and is called before renderProjects
-    private renderContent() {
+    // get error for private renderContent(); so remove private b/c 'private abstract' not supported
+    renderContent() {
         // add id to project list
         const listId = `${this.projectType}-projects-list`;
         // access <ul> & add listId
@@ -255,9 +267,10 @@ class ProjectList {
     }
 
     // method to attach section to page
-    private attach() {
-        this.hostElement.insertAdjacentElement('beforeend', this.element);
-    }
+    // this clashes with the attached method we have in base component class, so we get rid of it
+    // private attach() {
+    //     this.hostElement.insertAdjacentElement('beforeend', this.element);
+    // }
 }
 
 // ProjectInput Class
