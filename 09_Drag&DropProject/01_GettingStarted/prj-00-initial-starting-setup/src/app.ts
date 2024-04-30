@@ -16,13 +16,33 @@ class Project {
 }
 
 // custom type for listener
-type Listener = (items: Project[]) => void;
+// change function type to GENERIC type "T", so we can set this from outside
+type Listener<T> = (items: T[]) => void;
 
-// Project State Management class   
-class ProjectState {
+// base class for ProjectState
+// move array of listeners & addListener method to this base class
+// make State generic <T>
+// so when we extend State, we have to specify the type of data this state will work with
+// and instead of State, this then gets forwarded to our Listener custom type (above)
+class State<T> {
     // property to hold array of listeners (fns); of type Listener
-    private listeners: Listener[] = [];
-    
+    // add access modifier "protected", which is similar to private but also allows access from inheriting classes 
+    // Protected = can't be accessed from outside the class, but can be accessed by any class that inherits it
+    protected listeners: Listener<T>[] = [];
+
+    // function to add listener fns to listeners array
+    // listenerFn becomes type 'Listener' instead of type 'Function'
+    addListener(listenerFn: Listener<T>) {
+        this.listeners.push(listenerFn);
+    }
+}
+
+// Project State Management class
+// can restructure our ProjectState
+// technically we don't need inheritance b/c we only have this one single state we manage in this entire application, but imagine a bigger application with multiple different states (ex. one for user state, one for projects, one for shopping cart etc.)   
+// some features of this state class are always the same, ex. array of listeners & addListener() method => so we could use a base class here
+// to use the State base class: ProjectState class extends the State class & provide a concrete value for that generic place holder ("T"); here that concrete placeholder is Project => b/c the ProjectState is all about managing Projects
+class ProjectState extends State<Project>{ 
     // property to hold an array of projects; type Project(the custom type we created)
     private projects: Project[] = [];
 
@@ -30,7 +50,10 @@ class ProjectState {
     private static instance: ProjectState;
 
     // use a private constructor to guarantee that this is a singleton class
-    private constructor() {}
+    private constructor() {
+        // b/c of inheritance we need to call super method inside ProjectState constructor
+        super();
+    }
 
     // static getInstance method => to check then return this.instance 
     static getInstance() {
@@ -40,12 +63,6 @@ class ProjectState {
         // i.e, this.instance will be equal to a new project state
         this.instance = new ProjectState();
         return this.instance;
-    }
-
-    // function to add listener fns to listeners array
-    // listenerFn becomes type 'Listener' instead of type 'Function'
-    addListener(listenerFn: Listener) {
-        this.listeners.push(listenerFn);
     }
 
     // define how project should look like
@@ -72,6 +89,7 @@ class ProjectState {
         this.projects.push(newProject);
 
         // whenever state changes (ex add new project), we loop through all listeners and execute as function
+        // get error: listeners is private & only accessible within class State<T>
         for (const listenerFn of this.listeners) {
             // .slice() to make copy of projects
             listenerFn(this.projects.slice());
@@ -131,15 +149,9 @@ function autobind(
 }
 
 // Base class to house all element types
-    // => like in react; you can think of these classes as user interface components, which you render to the screen. And every componenet in the end is a renderable object which has some functionalities that allow us to render it => then the concrete instances, or the inherited classes, add extra functionality which this specific component needs
-// we do have problem re: types -> ex. templateElement will always be a HTMLTemplateElement but hostElement doesn't always have to be a div, for ex., when we add a project list item class, we'll render that in a ProjectList, and not directly in our root div
-// And in ProjectInput 'element' has more specific type as HTMLFormElement vs. HTMLElement
-// so we would lose this extra information if we restrict ourselves to always having just an HTMLElement there, w/o storing more specific information
-// How do we work around this? By not just using INHERITANCE but by creating a GENERIC CLASS here, where when we inherit from it, we can set the concrete types
-// add angle brackets after class name, inside add 2 identifiers of our choice, like T & U, and add some CONSTRAINTS
-
-// mark this class as ABSTRACT b/c people should never directly instantiate it, should always be used for INHERITANCE => add 'abstract' keyword in front of class to make sure we cannot instantiate it
-    
+// using INHERITANCE & creating a GENERIC CLASS here, where when we inherit from it
+// and we can set the concrete types
+// 'abstract' means it can't be instantiated
 abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     // we can say that T and U will be some kind of HTMLElement
         // hostElement is type T
@@ -149,8 +161,12 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     hostElement: T;
     element: U;
 
-    // constructor
-    // need to know ID of our template so we know how to select it, need to know hostElement ID so we know where to render this component, and need to get a newElementId, so that we get an ID that has to be assigned to the newly rendered element => optional, which we indicate by putting '?' after parameter or you can add 'undefined' as a type (newElementId: string | undefined)
+    // constructor:
+    // need to know ID of our template so we know how to select it
+    // need to know hostElement ID so we know where to render this component, 
+    // and need to get a newElementId, so that we get an ID that has to be assigned to the newly rendered element 
+        // => optional, which we indicate by putting '?' after parameter 
+        // or you can add 'undefined' as a type (newElementId: string | undefined)
     constructor(
         templateId: string, 
         hostElementId: string, 
@@ -172,15 +188,13 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
         }
 
         this.attach(insertAtStart);
-
-        // Q. WHY not calling configure() & renderContent() in the abstract class constructor??
     }
 
     private attach(insertAtBeginning: boolean) {
         this.hostElement.insertAdjacentElement(insertAtBeginning ? 'afterbegin' : 'beforeend', this.element);
     }
 
-    // add 2 more abstract methods -> force any class inheriting from this component, to add these two methods and to have them available
+    // force any class inheriting from this component to add these two methods and to have them available
     // that way if someone else looks at our code they will get a good understanding of what the idea behind the Component clas is: it does all the general rendering or attachment of the component, but that the concrete content & configuration needs to happen in the place where we inherit (note: can't have private abstract methods; one or the other)
     abstract configure(): void;
     // abstract configure?(): void; -> make it optional if don't want to be forced to add it to ProjectList class
@@ -189,6 +203,7 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 
 // ProjectList class
 // extend Component on ProjectList & remove the 3 properties (templateElement, hostElement & element)
+// we've restructured the ProjectList class to take advantage of inheritance and of our shared logic
 class ProjectList extends Component <HTMLDivElement, HTMLElement> {
     // keep assignedProjects b/c specific to the ProjectList
     assignedProjects: Project[];
@@ -205,34 +220,12 @@ class ProjectList extends Component <HTMLDivElement, HTMLElement> {
         // need to reference 'assignedProjects' inside constructor
         this.assignedProjects = [];
 
-        // call methods to attach section to DOM and render content (ie, h2, ul)
-        // this.attach();
-        // don't need to call attach() b/c that will happen in the base Component class
-
         // make sure to call configure()
         this.configure();
         this.renderContent();
     }
 
-    // method to render projects
-    private renderProjects() {
-        // access list from renderContent
-        const listEl = document.getElementById(`${this.projectType}-projects-list`)! as HTMLUListElement;
-
-        // clear list content to avoid  unnecessary rerendering
-        listEl.innerHTML ='';
-
-        // loop through all the project items of assignedProjects
-        for(const prjItem of this.assignedProjects) {
-            // every li (project item) is a project, which is an object
-            // create li element
-            const listItem = document.createElement('li');
-            // add title to li
-            listItem.textContent = prjItem.title;
-            // append li to ul
-            listEl.appendChild(listItem);
-        }
-    }
+    // Move public renderContent & configure above private renderProjects method
 
     // error b/c we don't have that configure method which was promised in base class
     configure() {
@@ -266,19 +259,31 @@ class ProjectList extends Component <HTMLDivElement, HTMLElement> {
         this.element.querySelector('h2')!.textContent = this.projectType.toUpperCase() + ' PROJECTS';
     }
 
-    // method to attach section to page
-    // this clashes with the attached method we have in base component class, so we get rid of it
-    // private attach() {
-    //     this.hostElement.insertAdjacentElement('beforeend', this.element);
-    // }
+    // method to render projects
+    private renderProjects() {
+        // access list from renderContent
+        const listEl = document.getElementById(`${this.projectType}-projects-list`)! as HTMLUListElement;
+
+        // clear list content to avoid  unnecessary rerendering
+        listEl.innerHTML ='';
+
+        // loop through all the project items of assignedProjects
+        for(const prjItem of this.assignedProjects) {
+            // every li (project item) is a project, which is an object
+            // create li element
+            const listItem = document.createElement('li');
+            // add title to li
+            listItem.textContent = prjItem.title;
+            // append li to ul
+            listEl.appendChild(listItem);
+        }
+    }
 }
 
 // ProjectInput Class
-class ProjectInput {
-    // define element types (template, div, form)
-    templateElement: HTMLTemplateElement;
-    hostElement: HTMLDivElement;
-    element: HTMLFormElement;
+// we restructured ProjectInput to take advantage of inheritance & let base class do a lot of the work
+// extends Component class
+class ProjectInput extends Component< HTMLDivElement, HTMLFormElement> {
     // define element types for user inputs
     titleInputElement: HTMLInputElement;
     descriptionInputElement: HTMLInputElement;
@@ -286,15 +291,8 @@ class ProjectInput {
 
     // function to create object
     constructor() {
-        // get ACCESS to template & place where it should be rendered
-        // store them as properties to the class
-        this.templateElement = document.getElementById('project-input')! as HTMLTemplateElement;
-        this.hostElement = document.getElementById('app')! as HTMLDivElement;
-
-        const importedNode = document.importNode(this.templateElement.content, true);
-
-        this.element = importedNode.firstElementChild as HTMLFormElement;
-        this.element.id = 'user-input'; // add id name to inherit CSS styling
+        // pass id of template, id of host element, insertBefore = true, and newElementId to super()
+        super('project-input', 'app', true, 'user-input');
 
         // access to inputs & store them as properties to the the class
         this.titleInputElement = this.element.querySelector('#title') as HTMLInputElement;
@@ -303,8 +301,16 @@ class ProjectInput {
 
         // call class methods inside constructor function
         this.configure();
-        this.attach();
     }
+
+    // method for event listener
+    // make configure public & convention to have public methods before private methods
+    configure() {
+        this.element.addEventListener('submit', this.submitHandler);
+    }
+
+    // TS complains it needs renderContent(), so we add it b/c we need to even though it's not doing anything in it but it satisfies our base class
+    renderContent() {}
 
     // method to get all user's inputs
     private gatherUserInput(): [string, string, number] | void {
@@ -365,16 +371,6 @@ class ProjectInput {
             // call method to clear fields
             this.clearInputs();
         }
-    }
-
-    // method for event listener
-    private configure() {
-        this.element.addEventListener('submit', this.submitHandler);
-    }
-
-    // method to render form on DOM
-    private attach() {
-        this.hostElement.insertAdjacentElement('afterbegin', this.element);
     }
 }
 
