@@ -201,6 +201,41 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
     abstract renderContent(): void;
 }
 
+// ProjectItem Class - responsible for rendering a single project item
+// extends Component class b/c responsible for rendering things to DOM
+// pass: 1. hostElement <ul>; 2. element <li>
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+    // would make sense to store the project that belongs to this rendered project item in this project item class
+    // that is, the project based on our Project Class, which we created up there - this is the data we will basically work with 
+    // make it private & of type Project (based on class we created)
+    private project: Project;
+
+    // constructor needs to provide id of element when project item rendered b/c id is not fixed (since we have 2 lists where item could be rendered to)
+    constructor(hostId: string, project: Project) {
+        // first thing to forward to super() is the template id for a single list item (taken from HTML doc)
+        // tempmlate id: 'single-project'
+        // hostId - <ul>; forwarded from constructor
+        // where to attach new li item - beginning or end of template? T or F
+            // false = at the end
+        // new element id => <li> item; forwarded from constructor
+        super('single-project', hostId, false, project.id);
+
+        this.project = project;
+
+        this.configure();
+        this.renderContent();
+    }
+
+    configure() {}
+
+    renderContent() {
+        this.element.querySelector('h2')!.textContent = this.project.title;
+
+        this.element.querySelector('h3')!.textContent = this.project.people.toString();
+        this.element.querySelector('p')!.textContent = this.project.description;
+    }
+}
+
 // ProjectList class
 // extend Component on ProjectList & remove the 3 properties (templateElement, hostElement & element)
 // we've restructured the ProjectList class to take advantage of inheritance and of our shared logic
@@ -269,13 +304,10 @@ class ProjectList extends Component <HTMLDivElement, HTMLElement> {
 
         // loop through all the project items of assignedProjects
         for(const prjItem of this.assignedProjects) {
-            // every li (project item) is a project, which is an object
-            // create li element
-            const listItem = document.createElement('li');
-            // add title to li
-            listItem.textContent = prjItem.title;
-            // append li to ul
-            listEl.appendChild(listItem);
+            // no longer add info manually, instead call new ProjectItem()
+                // 1. pass hostId (this.element.id of <ul>); add ! to skip null check
+                // 2. project (prjITem)
+            new ProjectItem(this.element.querySelector('ul')!.id, prjItem);
         }
     }
 }

@@ -155,27 +155,49 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   abstract renderContent(): void;
 }
 
-// ProjectItem Class
+// ProjectItem Class - responsible for rendering a single project item
+// it should extend Component class b/c that class is responsible fo rendering something on the screen
+// first set the generic types for the base class for inheriting
+// 1. pass in the hostElement (where we wanna render something) => <ul> HTMLUListElement
+// 2. pass in element - element we do render => <li> HTMLElement
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+  // would make sense to store the project that belongs to this rendered project item in this project item class
+  // that is, the project based on our Project Class, which we created up there - this is the data we will basically work with 
+  // make it private & of type Project (based on class we created)
   private project: Project;
 
+  // constructor needs to provide id of element when project item rendered b/c id is not fixed (since we have 2 lists where item could be rendered to)
   constructor(hostId: string, project: Project) {
+    // first thing to forward to super() is the template id for a single list item (taken from HTML doc)
+    // tempmlate id: 'single-project'
+    // hostId - <ul>; forwarded from constructor
+    // where to attach new li item - beginning or end of template? T or F
+      // false = at the end
+    // new element id => <li> item; forwarded from constructor
     super('single-project', hostId, false, project.id);
+
     this.project = project;
 
+    // call methods at end of constructor
     this.configure();
     this.renderContent();
   }
 
+  // add these methods which is required by our base class which we're extending (Component)
   configure() {}
 
+  // added h2(title), h3(person) & p(description) to HTML doc in <li> in template with id 'single-project'
   renderContent() {
+    // need to access these elements
+    // this.element = li
+    // add ! to make clear that we'll always get his element b/c we know with certainty b/c part of our template in html doc
     this.element.querySelector('h2')!.textContent = this.project.title;
     this.element.querySelector(
       'h3'
     )!.textContent = this.project.people.toString();
     this.element.querySelector('p')!.textContent = this.project.description;
   }
+  // now we need to use ProjectItem and the place to use it is the ProjectList => specifically in renderProjects
 }
 
 // ProjectList Class
@@ -210,13 +232,33 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement> {
       this.type.toUpperCase() + ' PROJECTS';
   }
 
+  // now we need to use ProjectItem and the place to use it is the ProjectList => specifically in renderProjects
   private renderProjects() {
+    // access list from renderContent
     const listEl = document.getElementById(
       `${this.type}-projects-list`
     )! as HTMLUListElement;
+
+    // clear list content to avoid  unnecessary rerendering
     listEl.innerHTML = '';
+
+    // // every li (project item) is a project, which is an object
+    // // create li element
+    // const listItem = document.createElement('li');
+    // // add title to li
+    // listItem.textContent = prjItem.title;
+    // // append li to ul
+    // listEl.appendChild(listItem);
+
+    // loop through all the project items of assignedProjects
     for (const prjItem of this.assignedProjects) {
+      // no longer add info manually, instead call new ProjectItem()
+        // 1. pass hostId (this.element.id of <ul>); add ! to skip null check
+        // 2. project (prjITem)
       new ProjectItem(this.element.querySelector('ul')!.id, prjItem);
+
+      // Attachment will happen inside of ProjectItem or inside of the base class COMPONENT, which ProjectItem extends
+      // instantiating ProjectItem (new) is all we need to do
     }
   }
 }
