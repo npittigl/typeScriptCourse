@@ -1,12 +1,33 @@
+// want to implement 2 things:
+    // 1. Drag & drop
+    // 2. update state and data
+
 // Drag & Drop Interfaces
+// to set up a contract which certain classes can sign(?) to force these classes to implement certain methods that help w/ drag & drop
+
+// we can add draggable interface to any class that renders an element which can be draggable => i.e. ProjectItems class, which is responsible for rendering project items
 interface Draggable {
+  // need 2 event listeners:
+
+  // listens for start of the drag event
+  // pass object 'event' of type 'DragEvent', which is a built in TS type (types w/ options libs, b/c of our tsconfig.json setup & libs we added there)
+  // will not return anything, it will be a method which executes the drag event
   dragStartHandler(event: DragEvent): void;
+
+  // listens for the end of the drag event
+  // also does not return anything, executes event (end drag)
   dragEndHandler(event: DragEvent): void;
 }
 
+// ProjectList class (the boxes of 'active' and 'finished' projects), is the drag targets
 interface DragTarget {
+  // 3 event handlers that also get event object of type DragEvent and does not return anything:
+
+  // this signals the browser in JS that the thing you're dragging something over is a valid drag target - permits the drop
   dragOverHandler(event: DragEvent): void;
+  // handles actual drop & update data & UI
   dropHandler(event: DragEvent): void;
+  // give user some visual feedback to indicate that the drop occurred
   dragLeaveHandler(event: DragEvent): void;
 }
 
@@ -168,6 +189,9 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 }
 
 // ProjectItem Class
+// use draggable interface here
+    // interface cannot just be used to define a custom object type but can use it as a contract on a class
+    // call "implements" after your class name
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
   implements Draggable {
   private project: Project;
@@ -188,6 +212,9 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
     this.renderContent();
   }
 
+  // must add the 2 methods from the Draggable interface
+  // use autobind decorator to ensure 'this' keyword refers to our class inside event listeners
+
   @autobind
   dragStartHandler(event: DragEvent) {
     console.log(event);
@@ -197,9 +224,15 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
     console.log('DragEnd');
   }
 
+  // Draggable methods above cannot listen to drag start event; can put that logic here in configure method
   configure() {
+    // access rendered element & add event listeners for dragstart and dragend
+    // want to make sure that inside of the drag handlers, that 'this' keyword refers to our class, as we know with event listeners that is not the case by default => can use .bind but we will use our autobind decorator - place it above both drag handler methods
     this.element.addEventListener('dragstart', this.dragStartHandler);
     this.element.addEventListener('dragend', this.dragEndHandler);
+
+    // ** in HTML must add the draggable attribute & set to true on list item
+    // <li draggable="true"> => this tells the browser that this will be draggable
   }
 
   renderContent() {

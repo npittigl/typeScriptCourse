@@ -159,6 +159,9 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
   private project: Project;
 
+  // getter function to retrieve proper term depending on no. of pple assigned to prj
+  // convention to add getters & setters right below your prop fields & above constructor
+  // getter helps us transform data when we retrieve it
   get persons() {
     if (this.project.people === 1) {
       return '1 person';
@@ -179,7 +182,12 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
 
   renderContent() {
     this.element.querySelector('h2')!.textContent = this.project.title;
+
+    // use getter here to retrieve proper wording based on no. of pple
+    // access like a normal property, don't have to call it like a fn w/ ()
+    // this.persons will trigger the getter, run the logic & return the appropriate text
     this.element.querySelector('h3')!.textContent = this.persons + ' assigned';
+
     this.element.querySelector('p')!.textContent = this.project.description;
   }
 }
