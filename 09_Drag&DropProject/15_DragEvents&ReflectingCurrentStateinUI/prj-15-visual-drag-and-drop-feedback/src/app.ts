@@ -210,6 +210,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
 }
 
 // ProjectList Class
+// implement DragTarget interface here, since this is where we want to drop the items
 class ProjectList extends Component<HTMLDivElement, HTMLElement>
   implements DragTarget {
   assignedProjects: Project[];
@@ -222,9 +223,15 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
     this.renderContent();
   }
 
+  // must add the methods from Draggable interface: dragOver, dragLeave, drop handlers
+  // _ : to tell ts that we don't need to use event object yet
+  // @autobind to ensure 'this' keyword applies to the class
+
   @autobind
   dragOverHandler(_: DragEvent) {
+    // access the ul element
     const listEl = this.element.querySelector('ul')!;
+     // add css styling so background changes colour to pink (active) or blue (finished) when user drags item
     listEl.classList.add('droppable');
   }
 
@@ -232,7 +239,9 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
 
   @autobind
   dragLeaveHandler(_: DragEvent) {
+    // access the ul element
     const listEl = this.element.querySelector('ul')!;
+    // remove css styling so background changes back to white when user no longer hovers item (drags) over ul
     listEl.classList.remove('droppable');
   }
 

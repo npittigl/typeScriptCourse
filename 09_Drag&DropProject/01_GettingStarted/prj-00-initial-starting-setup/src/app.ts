@@ -292,7 +292,8 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
 // ProjectList class
 // extend Component on ProjectList & remove the 3 properties (templateElement, hostElement & element)
 // we've restructured the ProjectList class to take advantage of inheritance and of our shared logic
-class ProjectList extends Component <HTMLDivElement, HTMLElement> {
+// implement DragTarget interface here, since this is where we want to drop the items
+class ProjectList extends Component <HTMLDivElement, HTMLElement> implements DragTarget {
     // keep assignedProjects b/c specific to the ProjectList
     assignedProjects: Project[];
 
@@ -313,10 +314,40 @@ class ProjectList extends Component <HTMLDivElement, HTMLElement> {
         this.renderContent();
     }
 
+    // must add the methods from Draggable interface: dragOver, dragLeave, drop handlers
+    @autobind
+    dragOverHandler(_event: DragEvent) {
+        // access the ul element
+        const listEl = this.element.querySelector('ul')!;
+        // add css styling so background changes colour to pink (active) or blue (finished) when user drags item
+        listEl.classList.add('droppable');
+    }
+
+    dropHandler(_event: DragEvent) {
+        
+    }
+
+    @autobind
+    dragLeaveHandler(_event: DragEvent) {
+        // access the ul element
+        const listEl = this.element.querySelector('ul')!;
+        // remove css styling so background changes back to white when user no longer hovers item (drags) over ul
+        listEl.classList.remove('droppable');
+    }
+
     // Move public renderContent & configure above private renderProjects method
 
     // error b/c we don't have that configure method which was promised in base class
     configure() {
+        // inside configure method, make sure even listeners are fired when event takes place
+
+        // dragover event
+        this.element.addEventListener('dragover', this.dragOverHandler);
+        // dragleave event
+        this.element.addEventListener('dragleave', this.dragLeaveHandler);
+        // drop event
+        this.element.addEventListener('drop', this.dropHandler);
+
         // before we attach and render content, reach out to global constant 'projectState' and call addListener
         // projects type = Project[] (our custom type class)
         projectState.addListener((projects: Project[]) => {
