@@ -200,9 +200,17 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement>
     this.renderContent();
   }
 
+  // dataTransfer property is special for drag events => you can attach data to the drag event and you'll later be able to extract that data upon a drop & the browser in JS behind the scenes will store that data during the drag operation & ensure that the data you get when the drop happens is the same data you attach here
   @autobind
   dragStartHandler(event: DragEvent) {
+    // STEP 1: Attaching data to the drag event
+    // you call setData method on dataTransfer property => takes 2 arguments: 
+      // 1. Identifier of the format of the data - which will be plain text data. 
+      // 2. Item id - Not going to attach our objects here, ie the project itself, suffice to attach the ID of the project b/c this will later allow us to fetch that project from our state
+    // add ! b/c dataTranser could be null so we add the ! b/c we know that it won't be null
     event.dataTransfer!.setData('text/plain', this.project.id);
+
+    // STEP 2: Setting effectAllowed property to 'move' => this controls how the cursor will look & tells browser about our intention, that we plan to move an element from A to B => we want to move (drag) an element, we remove it from its original place and add it to a new place upon a drop
     event.dataTransfer!.effectAllowed = 'move';
   }
 
@@ -237,7 +245,14 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
 
   @autobind
   dragOverHandler(event: DragEvent) {
+     // STEP 3: in this project we only have 1 drap & drop operation but in bigger apps you  might have different pieces on the page that can be dragged and dropped => so need to check if a drag is allowed here in the dragOverHandler, which fires when you enter a draggable area with an item attached to the mouse
+      // 1. check if event.dataTransfer is available AND
+      // 2. check if event.dataTransfer.types property has a first value which is equal to text/plain
+        // => this simply means 'is the data attached to our drag event of this format?'. Which it is b/c that is how we set it up in our dragStartHandler. We're just allowing dropping of plain text instead of say images
+          // if true -> allow drop & update the background
     if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      // call e.preventDefaulat b/c in JS a drag'n'drop works such that a drop is only allowed (i.e. drop event will only trigger on an element) if in the dragOverHandler on that same element you called preventDefault => the default for JS dran'n'drop events is to NOT allow dropping, so you have to preventDefault in the dragOverHandler to tell JS & browser that for this element, in this case for this section for this projectList class you wanna allow a drop
+      // so only if you add this in dragOverHandler the drop event will actually trigger when the user lets go; otherwise if the user lets go, the drop event will not fire
       event.preventDefault();
       const listEl = this.element.querySelector('ul')!;
       listEl.classList.add('droppable');
@@ -246,6 +261,7 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
 
   @autobind
   dropHandler(event: DragEvent) {
+    // access dataTransfer.getData => to get the data with this 'text/plain' format, which should be the project ID we attached to our dataTransfer package on the project item
     const prjId = event.dataTransfer!.getData('text/plain');
     projectState.moveProject(
       prjId,

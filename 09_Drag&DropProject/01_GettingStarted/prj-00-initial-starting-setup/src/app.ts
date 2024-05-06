@@ -261,8 +261,18 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements 
     // must add the 2 methods from the Draggable interface
     @autobind
     dragStartHandler(event: DragEvent): void {
-        console.log(event);
+        // STEP 1: Attaching data to the drag event
+        // use dataTransfer property which is special for drag events
+        // call setData method on dataTransfer
+            // setData() takes 2 arguments:
+                // 1. identifier of the data format ('text/plain')
+                // 2. item id - attach ID of the project
+        event.dataTransfer!.setData('text/plain', this.project.id);
+
+        // STEP 2: Setting effectAllowed property to 'move' => this controls how the cursor will look & tells browser about our intention, that we plan to move an element from A to B
+        event.dataTransfer!.effectAllowed = 'move';
     }
+
     @autobind
     dragEndHandler(_: DragEvent): void {
         console.log('DragEnd');
@@ -316,15 +326,25 @@ class ProjectList extends Component <HTMLDivElement, HTMLElement> implements Dra
 
     // must add the methods from Draggable interface: dragOver, dragLeave, drop handlers
     @autobind
-    dragOverHandler(_event: DragEvent) {
-        // access the ul element
-        const listEl = this.element.querySelector('ul')!;
-        // add css styling so background changes colour to pink (active) or blue (finished) when user drags item
-        listEl.classList.add('droppable');
+    dragOverHandler(event: DragEvent) {
+        // 1. check if event.dataTransfer is available AND
+        // 2. check if event.dataTransfer.types property has a first value which is equal to text/plain
+            // => this simply means 'is the data attached to our drag event of this format?'
+            // if true -> allow drop & update the background
+        if(event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+            // call e.preventDefaulat b/c the default for JS drag'n'drop events is to NOT allow dropping, so you have to preventDefault in the dragOverHandler to tell JS & browser that for this element, in this case for this section for this projectList class you wanna allow a drop
+            event.preventDefault();
+            // access the ul element
+            const listEl = this.element.querySelector('ul')!;
+            // add css styling so background changes colour to pink (active) or blue (finished) when user drags item
+            listEl.classList.add('droppable');
+        }
     }
 
-    dropHandler(_event: DragEvent) {
-        
+    @autobind
+    dropHandler(event: DragEvent) {
+        // access dataTransfer.getData => to get the data with this 'text/plain' format, which should be the project ID we attached to our dataTransfer package on the project item
+        console.log(event.dataTransfer!.getData('text/plain'));
     }
 
     @autobind
