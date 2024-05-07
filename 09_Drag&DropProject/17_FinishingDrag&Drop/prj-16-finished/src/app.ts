@@ -62,22 +62,49 @@ class ProjectState extends State<Project> {
       ProjectStatus.Active
     );
     this.projects.push(newProject);
+    // call updateListeners method
     this.updateListeners();
+    // for (const listenerFn of this.listeners) {
+      //.slice() to make copy of projects
+      //listenerFn(this.projects.slice());
+    // }
   }
 
+  // need a move project method
+  // switch project status -> need to know:
+    // 1. which project to move
+    // 2. which box teh new box is (ie which status the new status is)
   moveProject(projectId: string, newStatus: ProjectStatus) {
+    // need to find a project with taht id in our array of projects defined in this class => private projects: Project[] = []; 
+    // and then flip the status
+    // find() => runs on every element in this array and gives us acces to every element, and returns true if finds element we are looking for
+    // might be null, so here we'll call this 'const project'
     const project = this.projects.find(prj => prj.id === projectId);
+
+    // if true, that is, if the id of element we're currently looking at is equal to the projecId i'm getting as an argument, then we change status to the new status
+    // if you inspect the DOM it technically rerenders which might not be ideal, so we could think about coming up with some solution which checks whether the status actually did change, and if it didn't, we don't update
     if (project && project.status !== newStatus) {
+      // change status to the new status
       project.status = newStatus;
+      // call updateListeners method
       this.updateListeners();
     }
   }
 
+  // now we need to let all our listeners know that something changed about our project and that they should re-render
+  // so we have to go through all the listeners again & since we don't want to repeat code here, we will outsource this in a new private method => updateListeners
   private updateListeners() {
+    // for loop to go thru all listeners
+    // then call this updateListeners both from the addProject & moveProject method
+
+    // whenever state changes (ex add new project), we loop through all listeners and execute as function
+    // get error: listeners is private & only accessible within class State<T>
     for (const listenerFn of this.listeners) {
+      // .slice() to make copy of projects
       listenerFn(this.projects.slice());
     }
   }
+  // now all listeners will be triggered which leads to the list to rerender its items
 }
 
 const projectState = ProjectState.getInstance();
@@ -259,10 +286,17 @@ class ProjectList extends Component<HTMLDivElement, HTMLElement>
     }
   }
 
+  // add autobind so 'this' keyword refers to surrounding class
+  // in this class we have type property: active or finished
   @autobind
   dropHandler(event: DragEvent) {
-    // access dataTransfer.getData => to get the data with this 'text/plain' format, which should be the project ID we attached to our dataTransfer package on the project item
+    // store id in variable
+    // dataTransfer.getData => to get the data with this 'text/plain' format, which should be the project ID we attached to our dataTransfer package on the project item
     const prjId = event.dataTransfer!.getData('text/plain');
+    // call moveProject method on projectState (instance we created of ProjectState => a global constant)
+      // 1. pass project id
+      // 2. pass new project status => we have to translate active or finished to our enum values
+    // check if status is equal to 'active', in which case, we pass in ProjectStatus.Active, as the new status b/c that is the status of the list we moved project to, otherwise we pass in ProjectStatus.Finished
     projectState.moveProject(
       prjId,
       this.type === 'active' ? ProjectStatus.Active : ProjectStatus.Finished
