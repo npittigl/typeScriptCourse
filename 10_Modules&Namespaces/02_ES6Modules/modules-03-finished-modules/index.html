@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>ProjectManager</title>
     <link rel="stylesheet" href="app.css" />
-    <script src="dist/bundle.js" defer></script>
+    <script type="module" src="dist/app.js"></script>
   </head>
   <body>
     <template id="project-input">
@@ -44,29 +44,3 @@
     <div id="app"></div>
   </body>
 </html>
-
-<!-- 
-  Template Tags - are default html tags supported by modern browsers which allow us to specify some html code which is not visible/rendered immediately but can be reached via JavaScript
-
-  Project has a form with three inputs:
-
-  1. title of project
-  2. description of project
-  3. people - number of people on project
-
-  Second template holds list item to render a single project
-
-  Third template holds list of projects - header, <ul>
-    - <ul> will hold multiple single projects based on above template which renders data rendered via form
-
-  Everything will be appended to the <div id="app">
-
-  TS:
-  1. render form
-  2. fetches user's input
-  3. validates user's input (i.e. title, description & people has valid values)
-  4. listens to button click for form submission
-  5. creates new project - i.e a new JS object, likely stored in an array, which will then be rendered to this list
-  6. Entire list added to DOM
-  
--->
