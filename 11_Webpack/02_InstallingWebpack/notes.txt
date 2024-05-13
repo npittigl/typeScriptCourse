@@ -1,0 +1,38 @@
+- in terminal in project file name type:
+
+npm install --save-dev webpack webpack-cli webpack-dev-server typescript ts-loader
+
+- in 'package-json' file will see added dependencies:
+
+"devDependencies": {
+    "lite-server": "^2.6.1",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.0.4"
+  }
+
+  1. webpack: heart of this entire setup 
+  
+  - it's a tool that allows us to plug in certain functionalities to transfrom our TS code into JS & bundle all JS output together
+
+  2. webpack-cli: 
+
+  - runs webpack commands in our project
+
+  3. webpack-dev-server: built in development server
+
+  - start webpack under the hood, which watches our files for changes, automatically triggers webpack to recompile when something changes and which also serves our page
+
+  4. typescript: we already installed typescript globally on our machine, which is why we are able to run tsc -w
+
+  - it is good practice to auto install a copy of typescript PER project, so that you have a specific typescript version
+
+  - the advantage of this is that if you ever change your global typescript version, you don't break your project version
+
+  5. ts-loader: 
+
+  - is a package that tells webpack how to convert typescript code to JavaScript
+
+    - that way webpack is able to do both: compile our code with the help of ts-loader, which of course uses the TS compiler under the hood, and then webpack is also able to bundle our emitted JS files into a bundled js file into one bundled code file

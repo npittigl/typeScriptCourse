@@ -1,0 +1,35 @@
+- if open up Network tab in browser dev tools and reload the project file, we will see the disadvantage of having a ES6 modules set up
+
+- you can see a bunch of HTTP requests coming from our .js files
+
+- if you look at the 'waterfall' on the right hand side, you will see that every HTTP request has like a base overhead, a base duration it always takes
+
+    - the actual downloading of the file may be quite fast, but setting up the request, doing the work on the server, that all takes some time
+
+- having that many requests can really introduce a lot of latency and slow down your project just because of the sheer amount of HTTP requests made
+
+- webpacks help reduce the amount of HTTP requests
+
+- webpack is a tool that will help bundle our files together
+
+- can go to webpack.js.org to read their extensive & comprehensive documentation
+
+- we will just use some selected features that help us with takes
+
+WHAT IS WEBPACK?
+- it is a bundling tool
+- it reduces the amount of HTTP requests by bundling code together
+- so when we split up code across multiple files using ES Modules, webpack bundles them together
+
+- it can also optimize our code
+- allows us to add more build steps, more build tools (ex. CSS files), etc.
+
+NORMAL SETUP:
+- multiple .ts files & imports (HTTP requests)
+- unoptimized code (not as small as possible)
+- "external" development server needed (lite-server)
+
+WEBPACK SETUP:
+- bundles our code, less imports required
+- helps optimize code (minimizes code so less code to download)
+- easier to add more build steps 
