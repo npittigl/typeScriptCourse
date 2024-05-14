@@ -1,0 +1,99 @@
+1. Go to "tsconfig.json" to make sure you have proper configurations:
+
+    a. "target": "es6" (or es5)
+
+    b. "module": "es2015"
+
+    c. "outDir": "./dist/" - you can change this if you want to compile your code to a different directory. 
+
+    d. can comment out "rootDir": "./scr" - don't need root director b/c webpack will take over & determine where your root files are
+
+2. Create a new configuration file next to "tsconfig.json" - call it "wepback.config.js"
+
+    - it must be so named b/c this is the file webpack will automatically look for & will tell webpack how to work with our project
+
+    - this configuration uses javascript
+
+    - it also uses node.js features, which is why we want to use the node.js exports syntax (this is how you export things in a node.js environment)
+    
+        => this exports a JS object, which will be the configuration object picked up by webpack
+
+            1) entry
+            2) output => object w/ 2 properties:
+                a) filename
+                b) path
+
+3. In the "webpack.config.js" file add:
+
+    const path = required('path');
+
+    nodule.exports = {
+        entry: './src/app.ts',
+        output: {
+            filename: 'bundle.js',
+            path: path.resolve(__dirname, 'dist')
+        }
+    }
+
+    i. ENTRY POINT: webpack needs to know with which file your entire project starts; so the entry point
+
+        ex. in our case it's app.ts
+        - this file should be executed first, then webpack will look at the imports in this file and go those files next, look at their imports & the imports of the imported files and so on, until it knows all files your project uses in the end
+
+        - then it will go through all the files & their contents and compiles them with the help of the ts.loader package
+
+        - to make webpack work correctly here, you should actually now remove all .js extensions in all the imports (we needed that before when we used the native browser built in ts module functionality)
+
+        - add 'entry' property
+        - point at './src/app.ts' in our example, which is the root entry file of our project
+
+    ii. OUTPUT KEY:
+
+        - output is an OBJECT with two properties:
+
+            a) filename
+            b) path
+
+        a) filename => specify filename; this will be the single JavaScript file which will be produced in the end
+
+            - we'll name it bundle.js, but you can name it whatever you want
+
+            - you can also add dynamic parts here for example, content hash, to tell webpack to automatically create a unique hash for every build which can help you with caching in the browser
+
+            ex. filename: 'bundle.[contenthash].js'
+
+        b) path => specify path where the output should be written to
+
+            - this should match the path you have in your ts.config.js file to avoid errors (in our case we have './dist')
+
+            - but webpack requires an ABSOLUTE PATH
+
+                - to build one we can use a node.js module; we use the node.js import syntax at top of file:
+
+                    const path = required('path');
+
+                    - uses the 'required' keyword & imports the path module:
+
+                        - you don't need to install this as a library, this is a core node.js module which you already have if you got node.js installed (which you do)
+
+            - now you can use const path to call the 'resolve' method => path.resolve(constant, pathname)
+            
+            - resolve method:
+            
+                - allows you to build an absolute path to a certain folder
+
+                - accepts 2 arguments:
+
+                    1) a special constant called '__dirname'(2 underscores)
+
+                        - which is available globally in a node.js environment
+
+                    2) pathname from your tsconfig.json file - in this case 'dist'
+
+                        - in the end 'dist' just constructs an absolute path to the dist folder which webpack then uses to write your output there
+
+So with this you have your entry point and output point
+
+BUT you don't tell webpack what to do with your TypeScript file, b/c by default webpack doesn't know that, b/c by default it's just a bundler
+
+Any extra functionalify, like compiling TypeScript to JavaScript has to be taught to webpack (next lesson will be about that)
