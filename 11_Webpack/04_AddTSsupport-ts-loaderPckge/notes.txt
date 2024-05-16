@@ -1,0 +1,133 @@
+To tell Webpack what to do w/ TypeScript, we need to add a new entry to the configuration object => Module property
+
+"Module" property also takes an object
+
+    const path = require('path');
+
+    module.exports = {
+        entry: './scr/app.ts',
+        output: {
+            filename: 'bundle.js',
+            path: path.resolve(__dirname, 'dist')
+        },
+        devtool: 'inline-source-map',
+        module: {
+            rules: [
+                {
+                    test: /\.ts$/,
+                    use: 'ts-loader',
+                    exclude: /node_modules/
+                }
+            ]
+        },
+        resolve: {
+            extensions: ['.ts', '.js']
+        }
+    }
+
+- a module in the end is just a file
+- this is where we tell Webpack how to:
+        
+    - work w/ the file it finds (like app.ts)
+    - once it understands that file, how to deal with all the imports in the file
+
+How should Webpack deal with these files?
+
+    - by adding a RULES ARRAY
+    - here we only need one, but in more complex projects, where you also want to use WP to handle CSS files or images, you can add more rules for different types of files
+    - add a loader 
+        -> in this case a ts-loader, to teack Webpack how to deal with TypeScript files
+
+    LOADER: a loader is simply a package that tells Webpack how to deal with certain files
+
+    - read the official docs to learn more about loaders, which is what you use to teach Webpack about different files 
+
+Rules Array:
+
+- is a JS object
+- add a 'test' property => this describes a test Webpack will perform on any file it finds to find out whether this rule here applies to that file or not
+- the test here is a regular expression
+- here we want to tell Webpack that any file which ends w/ .ts should be used or should be handled by this rule
+
+- a regular expression that checks for file extension use a backslash, then .ts, then $
+
+    /\.ts$/ => will look for files that end with .ts
+
+- also have to specify what webpack should DO with those files => 'use' keyword & specify the loader Webpack should use
+
+    use: 'ts-loader'
+
+    - the ts-loader will automatically take the tsconfig.json file into account, so we don't need to specify any extra configuration here
+
+   - one configuration to add that never hurts is:
+
+        exclude: /node_modules/ 
+
+    as a regular expression, so that Webpack doesn't try to look into node modules
+
+- After the 'module' configuration, add the 'resolve' key 
+
+RESOLVE: 
+- here we tell Webpack which file extensions it adds to the imports it finds
+
+- by default WP looks for .js files 
+
+- we want Webpack to look for .ts files, in the 'resolve' we add an extensions property, set as equal to an array & tell WP to look for .ts files, as well as .js files
+
+- so now WP will look for such files & bundle all the files, which will be imported together
+
+THEN GO TO TSCONFIG.JSON:
+
+=> go to sourceMap and make sure it is set to 'true' => this will help debug our code, which WP supports as well
+
+- After 'output' add an entry, which is the 'devtool' key 
+
+    devtool: 'inline-source-map'
+
+    => this tells WP there will be generated source maps already, which it should extract and basically wire up correctly to the bundle it generates
+
+    - and whilst we get the bundle, we still have a great development experience
+
+HOW DO WE USE WEBPACK?
+
+- go to the PACKAGE.JSON file 
+- add a script, ex. 'build', and run 'webpack'
+
+    "build": "webpack"
+
+- you can give it any name you want in the scripts section:
+
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "lite-server",
+        "build": "webpack"
+    },
+
+1) GO TO DIST FOLDER & remove everything that's in there
+
+2) save
+
+3) then run 'npm run build'
+
+4) you will see that in the 'dist' file you have a bundled .js file
+
+5) go to index.html and adjust our imports here & point to 'bundle.js'
+
+- now it will import the bundled .js file, that is only one file, instead of all these individual files
+
+    -> this avoids all unnecessary http requests
+
+- if you go to sources tab & want to debud your code, you'll find the webpack folder & its source folder 
+
+    -> there you can go to your TS files & debug
+    -> for ex. if you go to the TS files, project-input.ts (in components folder), set a break point on gatherUserInput() function, and if you press the button, it pauses there & you can debug your code
+    -> that is the source map coming in, which is really helpful for development stage
+
+    -> we get this optimized code & thanks to the source maps, we can debug our original TS code here
+
+- need to make sure Webpack Dev Server is included
+
+- then we will have two workflows:
+
+    1) one for production
+    2) one for development

@@ -1,0 +1,56 @@
+In the next lecture, we'll add webpack-dev-server - a tool we use for spinning up a local development server that serves our website.
+
+When using the latest Webpack version, you must edit the webpack.config.js file slightly.
+
+1) Add a devServer option
+
+    devServer: {
+      static: [
+        {
+          directory: path.join(__dirname),
+        },
+      ],
+    },
+
+2) Set output.publicPath to '/dist/'
+
+    output: {
+      filename: 'bundle.js',
+      path: path.resolve(__dirname, 'dist'),
+      publicPath: '/dist/'
+    },
+
+(we add publicPath in the next lecture - make sure you set it to '/dist/', NOT to just 'dist'!)
+
+After the next lecture, the finished, updated webpack.config.js file should look like this:
+
+    const path = require('path');
+     
+    module.exports = {
+      mode: 'development',
+      entry: './src/app.ts',
+      devServer: {
+        static: [
+          {
+            directory: path.join(__dirname),
+          },
+        ],
+      },
+      output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist/',
+      },
+      module: {
+        rules: [
+          {
+            test: /\.tsx?$/,
+            use: 'ts-loader',
+            exclude: /node_modules/,
+          },
+        ],
+      },
+      resolve: {
+        extensions: ['.ts', '.js'],
+      },
+    };
