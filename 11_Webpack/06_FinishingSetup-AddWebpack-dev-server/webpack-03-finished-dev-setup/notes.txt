@@ -1,0 +1,60 @@
+Preparing for Development Work Flow:
+
+To use the webpack server go to "package.json" file 
+
+=> under "scripts" objects
+    => "start": 
+        => change "lite-server" to "webpack-dev-server"
+
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "webpack-dev-server",
+        "build": "webpack"
+    }
+
+- when you npm start again, you'll see that it now spins up:
+
+ 1) a server running on local host 8080
+ 2) the webpack build work flow
+
+- if you visit local host 8080 we see our project there
+
+- but if you change code, even though it recompiles, you don't see changes on project
+
+WHY? - it is still not correctly wired up
+
+NOTE: dist folder stays empty in the webpack-dev-server mode, the bundle is generated in memory only & not written to the dist
+
+- To tweak this go to "webpack.config.js" file
+
+    => in output add a "publicPath" key and set it to "dist"
+
+    publicPath: '/dist/'
+
+    output: {
+        filename: 'bundle.js',
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: '/dist/'
+    }
+
+- now you can change code, save, & app recompiles and updates accordingly on server
+
+- this is just an additional configuration that is needed for the webpack-dev-server to really understand WHERE the output is written to and WHERE it is relative to the index.html file
+
+    => b/c by default the webpack-dev-server serves an index.html file, it finds in the same folder as you run this script here, which is correct, but then it doesn't make the connection to the dist folder correctly
+
+        => which is why we have to inform webpack-dev-server with "publicPath" where to find our assets, so our bundle.js file in this changes
+
+One last setting to add in "webpack.config.js":
+
+- at top of exported object:
+
+    mode: 'development'
+
+        => this will tell webpack that here we're building for development & it will do fewer optimizations to improve our dev't experience 
+        
+            => making debugging even easier by giving us more meaningful error messages, for example
+
+
+
+
