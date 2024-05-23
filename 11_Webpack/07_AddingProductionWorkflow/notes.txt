@@ -1,0 +1,114 @@
+ADDING A PRODUCTION (connecting to server) WORKFLOW:
+
+- need different workflow for production, when we upload code to a server
+
+1) add a new configuration called "webpack.config.prod.js" (new file)
+
+2) copy & paste from webpack.config.js:
+
+const path = require('path');
+
+module.exports = {
+  mode: 'development',
+  entry: './src/app.ts',
+  devServer: {
+    static: [
+      {
+        directory: path.join(__dirname),
+      },
+    ],
+  },
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+    publicPath: '/dist/'
+  },
+  devtool: 'inline-source-map',
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      }
+    ]
+  },
+  resolve: {
+    extensions: ['.ts', '.js']
+  }
+};
+
+3) set mode to production => mode: 'production'
+- tells webpack to minimize/optimize code
+
+4) can get rid of public path: publicPath: '/dist/'
+- this was required for webpack-dev-server
+- for production we want to run webpack script & generate our output written to dist & not served temporarily on a locall running server
+
+5) set devtool to 'none' -> devtool: 'inline-source-map'
+- to not generate any source maps here b/c in production we might not need them
+
+6) Rest stays the same but we need to ADD a plugin: 
+
+    - plugins are extra extensions you can add to your Webpack workflow which will be applied to the entire output/project
+
+    - "rules" and "modules" are applied on a per file level
+
+    - plugins are applied to the general workflow
+
+    a) install plugin in terminal
+        
+        - here we want to add a plugin that automatically deletes everything in the dist folder before a new output is written there, so that we always have the latest, most recent output in the dist folder 
+    
+      => in terminal install a brand new package:
+
+        install --save-dev clean-webpack-plugin
+
+      b) At top of page import it:
+
+          const CleanPlugin = required('clean-webpack-plugin');
+
+
+      c) add plugins entry array
+
+          plugins: [
+            new CleanPlugin.CleanWebpackPlugin()
+          ]
+
+          - inside the plugins array call new CleanPlugin.CleanWebpackPlugin to instantiate this (its a constructor function)
+
+         - this will tell Webpack that before it writes something to this OUTPUT folder, it will clear everything that is in there first
+
+  7) To use it - go to "package.json" to adjust the build script:
+
+    - here we want to tell Webpack to use this production configuration file and we do so by adding "--config webpack.config.prod.js"
+
+      "build": "webpack --config webpack.config.prod.js"
+
+       "webpack.config.prod.js" = file name you chose
+
+       "webpack --config" = instructs Webpack to use the above configuration file instead of the default Webpack.config.js file it normally looks for
+
+  With that if you now run "npm run build", it will build your app for production => which means it gives you this optimized output
+
+  bundle.js file => has optimized code built for production 
+  
+    => & this together w/ index.html & app.css file is what you would put onto a server here if you want to deploy your application
+
+OVERVIEW:
+
+- webpack bundles together different files into ONE bundle
+
+- this helps decrease number of HTTP requests made (speeds up application)
+
+- webpack is highly configurable -> can learn more from the webpack official docs 
+
+  ex. loaders, error settings
+
+- the basic set up here allows us to 
+
+  1) compile TS w/ webpack & then bundle together all the output into one single bundle.js file
+
+  2) we also set up a configuration for development, which makes debugging easier & provides more helpful error messages
+
+  3) we get a production setup which gives us a highly optimized code which we then could deploy to a server to ship as little code as possible to it
