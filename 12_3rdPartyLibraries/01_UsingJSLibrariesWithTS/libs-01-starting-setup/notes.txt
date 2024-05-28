@@ -1,0 +1,72 @@
+Module Content:
+
+Using 3rd party libraries is common to add certain functionalities to our projects.
+
+1) "Normal" Libraries & using them with TypeScript
+
+2) TypeScript-specific Libraries 
+
+    -> these libraries utilize & embrace certain types of features to give you a brand new way of working with them to give you certain functionalities you can't build like this with vanilla JS
+
+LODASH =>
+
+- Lodash is a popular utility library
+- simpler JS library 
+- don't need TS to use it
+- to install it go to Lodash docs
+
+- But if using npm, then can write:
+
+    npm install --save lodash
+
+- in this example project, which uses WEBPACK w/o a production workflow & just a dev't workflow, we can add this library 
+
+- And thanks to our webpack setup we can just import it into our code files & utilize it there
+
+- if not using WEBPACK you can simply use the CDN & so on
+
+- import it at top of app.ts 
+
+    import _ 'lodash'
+
+- TS doesn't understand what's in the imported Lodash source code b/c it uses vanilla JS
+
+- we can use any JS library in a TS project, we just have to translate it to TS
+
+HOW TO TELL TS ABOUT LODASH:
+
+- install translation types packages
+- they're always name "@types", then the package name
+- these basically exist for any popular third party library you can find out there
+
+ex. for jQuery types: @types/jQuery
+
+- if you search for Lodash types, you will find docs for an npm package called "@types/lodash"
+
+- install command:
+
+    npm install --save @types/lodash
+
+- in the docs you will also see a link to a github repository called DefinitelyTyped
+
+    => this repo has tons of translations for all kinds of 3rd party libraries
+
+    => in the Lodash folder you will find ".dts" files
+
+        -> they're declaration files which means they don't contain any actual logic but contain instructions to TS & tells TS how something works & what's included in this package
+
+        -> these files provide a translation from plain JS to TS
+
+        -> defines the types this library works with 
+
+
+    - with the translation can utilize TS
+    - get autocompletion (type dot . in IDE - terminal in VSCode), can see the Lodash methods you can use
+    - these translation packages allow you to use regular, normal, vanilla JS libraries in a TS project & still get great support, auto-completion and avoid errors.
+
+
+
+
+
+
+

@@ -1,0 +1,14 @@
+WHAT IF YOU DO HAVE A LIBRARY WHERE YOU CAN'T INSTALL @TYPES?
+
+- <script> tags in index.html define variable
+
+    var GLOBAL = 'This is set'
+
+- use DECLARE keyword to declare certain variables
+
+    declare var GLOBAL: string;
+
+- this tells TS that this variable exists
+- this command is important because it allows you to declare TS features or variables where you know that they exist or 
+- let TS know about packages, global variables in general, which TS can't know, but as a developer know that they will be there
+
