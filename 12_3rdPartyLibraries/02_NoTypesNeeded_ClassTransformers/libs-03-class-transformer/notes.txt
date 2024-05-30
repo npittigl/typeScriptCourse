@@ -1,0 +1,86 @@
+THIRD PARTY LIBRARIES THAT EMBRACE TYPESCRIPT
+
+A) CLASS TRANSFORMER
+
+- let's say we create a simple class that creates an object of product & price with a constructor that retrieves information from created object
+
+- if you have an app that retrieves an array of data from the backend (JSON)
+
+    => these are of course JS objects but they're not instances of our product model (class Product)
+
+    => this means you get data as JSON but has NO attached data to which constructor function your're frontend code belongs
+
+    => your server doesn't know that and JSON is a format that just transmits basic data; you don't have rich meta data to your objects attached there
+
+- in other words, the products we get here are objects which DON'T have a getInformation() method
+
+- traditionally, if you now wanted to convert this into instances of your model, you would have to do it manually:
+
+    const loadedProducts = products.map(prod => {
+        return new Product(prod.title, prod.price);
+    });
+
+    - call map method on every product in that array we return "new Product" for prod.title and prod.price
+
+    - then we'd have an array full of real product constructor function instances and loop through that 'loadedProducts'
+
+        for (const prod of loadedProducts) {
+            console.log(prod.getInformation());
+        }
+
+- however, doing this manually is cumbersome -> many extra steps
+
+- this is where a "class transformer" package can help us
+
+- can call a simple convenience method that will automatically convert our data (say, from a server) into the right models: 
+
+    1) install module in terminal:
+
+        npm install class-transformer --save
+
+    2) install "reflect-metadata":
+
+        npm install reflect-metadata --save
+
+    3) import it in a global place, like app.ts 
+
+        import "reflect-metadata";
+
+    4) import plainToClass() method from class transformer:
+
+        import { plainToClass } from 'class-transformer';
+
+            -> this package has other methods, but plainToClass() is the main method 
+
+            -> be sure to read official documentation for class transformer to make sure you are installing it correctly (diff steps if you don't have webpack, for example) & to read about the other methods
+
+    5) use the imported plainToClass() method:
+
+        const loadedProducts = plainToInstance(Product, products);
+
+        for (const prod of loadedProducts) {
+            console.log(prod.getInformation());
+        }
+
+        - use the method to set your loadedProducts
+
+        - instead of doing it manually like before, we can set loadedProducts to equal plainToClass & pass 2 arguments:
+
+            i) 1st argument = class we want to convert it to 
+            
+                - in this case here it is the class Product
+
+                - we don't instantiate it or call it, just point to the class
+
+            ii) 2nd argument = products (array of data objects from server)
+
+        - this package will now go over this array & transform every plain Vanilla JS object here to an instance of the class Product (or whichever class you point to)
+
+    6) save & run npm start again
+
+- Amazing thing about this package is that it works well here b/c it builds up on & utilizes TypeScript 
+
+    => even though it doesn't use a TS specific feature
+
+    => classes also exist in vanilla JS, so even though class-transformer was dev'd primarily for TS, it actually also works in vanilla JS -> not true for "class-validator"
+
