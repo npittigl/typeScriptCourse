@@ -1,0 +1,85 @@
+CLASS VALIDATOR
+
+- this package utilizes TS & builds up on the concept of TS decorators
+
+- this package allows us to add VALIDATION rules with the help of some decorators, inside of a class 
+
+- then whenever we instantiate such a class, we can actually validate if for the rules we set up there with the help of decorators
+
+1) import package:
+
+    npm install class-validator --save
+
+- then restart the webpack-dev-server
+
+2) go to "tsconfig.js" file, make sure this is turned on:
+
+    "experimentalDecorators": true,
+
+- then restart dev server
+
+
+3) You can import certain decorators from 'class-validator'
+
+    ex. 'IsNotEmpty', 'IsNumber', 'IsPositive'
+
+    - you can add these decorators to the properties we want to validate
+
+    import { IsNotEmpty, IsNumber, IsPositive } from 'class-validator';
+
+    export class Product {
+        @IsNotEmpty()
+        title: string;
+        @IsNumber()
+        @IsPositive()
+        price: number;
+
+        constructor(t: string, p: number) {
+            this.title = t;
+            this.price = p;
+        }
+
+        getInformation() {
+            return [this.title, `$${this.price}`];
+        }
+    }
+
+- adding these validation rules basically says that the TITLE must never be an empty string, NUMBERS should be a positive value
+
+4) Must also import the validator() method (in app.ts) for the decorators to work properly: 
+
+    import { validate } from 'class-validator';
+
+- we have to execute this on a concrete instance of the class where we added our decorators to
+
+- in this case, we can run 'validate()' and pass the newProd to it
+
+- validate() will then return a 'promise' which might yield validation errors, so we add .then()
+
+- we get back any errors the validation function finds
+
+    validate(newProd).then(errors => {
+        if (errors.length > 0) {
+            console.log('VALIDATION ERRORS!');
+            console.log(errors);
+        } else {
+            console.log(newProd.getInformation());
+        }
+    });
+
+- if there are validation errors, we don't use .catch(), always use .then()
+
+- inside .then(), use if statements to check if errors:
+
+    - 'errors' is an array
+    - if errors.length > 0 (which means there ARE validation errors), we log the validation errors
+    - else, log the information
+
+- of course, it depends on what application you're building what you want to do here (ex. alert user, reset input etc.)
+
+
+- this package offers more elaborate decorators with a bunch of built in rules (can learn more in docs of this package), so you don't have to reinvent the wheel
+
+- class-validator package is very powerful and very useful when building bigger TS projects
+
+
