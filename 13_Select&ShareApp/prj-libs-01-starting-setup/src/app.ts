@@ -6,6 +6,15 @@
 import axios from 'axios';
 // in axios folder (found in node modules folder), file 'index.d.ts' lists all ts features you can use
 
+// declare 'google' as variable at top, set type to 'any' -> telling TS "It's fine, this will exist, don't worry."
+// can declare 'google' b/c imported from SDK/script tag we added to html from API docs
+
+// can comment out declare var google b/c downloaded npm package for types/googlemaps
+
+declare var google: any;
+
+
+
 // 1. Get user input
 
 // store elements in variables:
@@ -59,7 +68,26 @@ function searchAddressHandler(event: Event) {
             }
             // access latitude & longitude objs in (response) data object
             // we will be able to render lat & lng on a map later
+            // search 'Google JavaScript Maps' to find official docs for JS Google Maps API on how to render a map
             const coordinates = response.data.results[0].geometry.location;
+            // copied from Google Maps API docs
+            // declare 'google' as variable at top, set type to 'any'
+            // 'google' imported from API b/c of SDK/script tag we added to html
+            // for center (which is latitude & longitude), we sub in our 'coordinates' variable
+            // need to make sure this map renders in right correct place
+            // by default it looks for an element with an id of 'map'
+            // in html we added div with id 'map' (if use another id name, be sure to update it here):
+                //<div id="map">
+                  //<p>Please enter an address!</p>
+                //</div>
+            const map = new google.maps.Map(document.getElementById("map"), {
+                center: coordinates,
+                zoom: 16,
+            });
+            
+            // we also want to render a marker, use 'map created' & create a marker with this command and point at this map
+            // pass 'coordinates' variable to 'position' key
+            new google.maps.Marker({position: coordinates, map: map});
         })
         .catch(err => {
             alert(err.message);
@@ -69,3 +97,17 @@ function searchAddressHandler(event: Event) {
 
 // add event listener to form
 form.addEventListener('submit', searchAddressHandler);
+
+// to get type support for using google maps download a npm package:
+
+    // npm install --save @types/googlemaps
+
+// this package will install global types for this particular package
+
+    // get error if type .map instead of .maps (before downloading paackage, it didn't show as an error)
+    // get autocompletion
+    // tells us that the Map constructor needs a 'div' or an 'element' where is should render the map as 1st argument, and then some options for the map (in this case we chose center & zoom )
+
+// this project shows how you can work with 3rd party libraries (axios, api)
+    // some like axios bring their own types
+    // others aren't even installed with NPM and yet you can add types with an appropriate types package (@types/googlemaps)
